@@ -46,6 +46,7 @@ dependencies:
   package_info_plus: 9.0.0          # Версия приложения
   restart_app: ^1.2.1                # Перезапуск
   flutter_background_service: ^5.1.0
+  animate_do: ^4.2.0
 
 dev_dependencies:
   flutter_test:

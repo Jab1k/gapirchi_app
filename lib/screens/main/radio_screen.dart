@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// import 'package:gapirchi_app/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -265,10 +266,13 @@ class _RadioScreenState extends State<RadioScreen> {
       appBar: AppBar(
         title: const Text("Gapirchi"),
         actions: [
-          ElevatedButton(
-            child: Text('Check for update'),
-            onPressed: _checkForUpdates,
-          ),
+          // ElevatedButton(
+          //   child: Text('Check for update'),
+          //   onPressed: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => SettingsScreen()),
+          //   ),
+          // ),
           // КНОПКА ЖАЛОБЫ
           IconButton(
             icon: const Icon(Icons.report_problem, color: Colors.grey),

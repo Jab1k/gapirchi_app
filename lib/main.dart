@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         // Если уже вошли -> Рация, иначе -> Ввод номера
-        home: isLoggedIn ? const PhoneInputScreen() : const PhoneInputScreen(),
+        home: isLoggedIn ? const RadioScreen() : const PhoneInputScreen(),
       ),
     );
   }

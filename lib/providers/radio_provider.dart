@@ -53,6 +53,14 @@ class RadioProvider with ChangeNotifier {
     await _player.start();
   }
 
+  void cleanUpForLogout() {
+    disconnect();
+    // Boshqa o'zgaruvchilarni ham tozalash
+    _currentSpeaker = null;
+    _lastSpeaker = null;
+    _status = RadioStatus.idle;
+  }
+
   // Подключение к Сокету
   Future<void> _connectSocket() async {
     final prefs = await SharedPreferences.getInstance();
@@ -156,6 +164,7 @@ class RadioProvider with ChangeNotifier {
   void startSpeakingRequest() {
     if (_socket != null && _socket!.connected) {
       _socket!.emit('request_to_speak');
+      print("Запрос на говорение отправлен");
     }
   }
 
@@ -163,6 +172,7 @@ class RadioProvider with ChangeNotifier {
     _audioSubscription = _recorder.audioStream.listen((data) {
        if (_socket != null && _status == RadioStatus.speaking) {
          _socket!.emit('audio_stream', data);
+         print( "Отправлено аудио: ${data.length} байт");
        }
     });
     _recorder.start();
@@ -195,6 +205,7 @@ class RadioProvider with ChangeNotifier {
   void disconnect() {
     _socket?.disconnect();
     _recorder.stop();
+    _socket = null;
     _player.stop();
     _audioSubscription?.cancel();
   }

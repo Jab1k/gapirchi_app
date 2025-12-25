@@ -1,50 +1,51 @@
 import 'package:flutter/material.dart';
 
+class AppColors {
+  static const Color darkBg = Color(0xFF0a2a3e);    // Eng to'q fon
+  static const Color cardBg = Color(0xFF1a4d73);    // Elementlar foni
+  static const Color primary = Color(0xFF3f8cc2);   // Asosiy ko'k
+  static const Color accent = Color(0xFF6ab0e4);    // Och ko'k (aktiv)
+  static const Color textLight = Color(0xFFa2c8e8); // Matn rangi
+  static const Color white = Colors.white;
+}
+
 class AppTheme {
   static final darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    primaryColor: const Color(0xFF00C853),
+    scaffoldBackgroundColor: AppColors.darkBg,
+    primaryColor: AppColors.primary,
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF00C853),
-      secondary: Color(0xFFFF3D00),
-      surface: Color(0xFF1E1E1E),
+      primary: AppColors.primary,
+      secondary: AppColors.accent,
+      surface: AppColors.cardBg,
+      background: AppColors.darkBg,
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: AppColors.darkBg,
       elevation: 0,
       centerTitle: true,
+      titleTextStyle: TextStyle(color: AppColors.white, fontSize: 20, fontWeight: FontWeight.bold),
     ),
+    // Inputlar dizayni
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF2C2C2C),
+      fillColor: AppColors.cardBg,
+      hintStyle: TextStyle(color: AppColors.textLight.withOpacity(0.5)),
+      labelStyle: const TextStyle(color: AppColors.textLight),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      contentPadding: const EdgeInsets.all(16),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.accent)),
     ),
-  );
-
-
-  static final lightTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-    primaryColor: const Color(0xFF00C853),
-    colorScheme: const ColorScheme.light(
-      primary: Color(0xFF00C853),
-      secondary: Color(0xFFFF3D00),
-      surface: Color(0xFFFFFFFF),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFFFFFFF),
-      elevation: 0,
-      centerTitle: true,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: const Color(0xFFFFFFFF),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      contentPadding: const EdgeInsets.all(16),
+    // Tugmalar dizayni
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
     ),
   );
 }

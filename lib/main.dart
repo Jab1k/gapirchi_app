@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gapirchi_app/providers/settings_provider.dart';
+import 'package:gapirchi_app/providers/user_provider.dart';
+import 'package:gapirchi_app/screens/main_wrapper.dart';
 import 'package:provider/provider.dart';
 import 'config/themes.dart';
 import 'providers/auth_provider.dart';
@@ -27,13 +30,15 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RadioProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         title: 'Gapirchi',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         // Если уже вошли -> Рация, иначе -> Ввод номера
-        home: isLoggedIn ? const RadioScreen() : const PhoneInputScreen(),
+        home: isLoggedIn ? const MainWrapper() : const PhoneInputScreen(),
       ),
     );
   }

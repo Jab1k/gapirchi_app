@@ -85,18 +85,19 @@ class RadioProvider with ChangeNotifier {
     });
 
     // --- НОВОЕ: Обработка кика (Force Logout) ---
-    _socket!.on('force_logout', (data) async {
-      print("Получена команда выхода: ${data['reason']}");
-      
-      // 1. Останавливаем все процессы
-      disconnect(); 
-      
-      // 2. Очищаем сохраненные данные входа
-      await prefs.clear(); 
+    _socket!.on('force_logout_device', (data) async {
+      final removedDeviceId = data['deviceId'];
+      print("Serverdan o'chirish buyrug'i keldi: $removedDeviceId");
 
-      // 3. Сообщаем UI, что нужно показать диалог и выйти
-      if (onLogout != null) {
-        onLogout!(data['reason'] ?? "Вход выполнен на другом устройстве");
+      // O'zimizning ID ni tekshiramiz
+      final prefs = await SharedPreferences.getInstance();
+      final myDeviceId = prefs.getString('device_unique_id');
+
+      // Agar serverdan kelgan ID bizniki bilan bir xil bo'lsa -> CHIQAMIZ!
+      if (myDeviceId != null && myDeviceId == removedDeviceId) {
+         if (onLogout != null) {
+           onLogout!("Sizning sessiyangiz yakunlandi.");
+         }
       }
     });
     // ---------------------------------------------

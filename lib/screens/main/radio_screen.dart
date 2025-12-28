@@ -139,7 +139,7 @@ class _RadioScreenState extends State<RadioScreen> {
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
         backgroundColor: AppColors.darkBg,
-        title: const Text("Gapirchi", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Gapirchi 20.0", style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           // Shikoyat tugmasi
           IconButton(

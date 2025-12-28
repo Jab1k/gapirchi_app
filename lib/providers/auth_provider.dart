@@ -1,64 +1,72 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:math'; // Random uchun
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../services/api_service.dart';
 import '../models/car_brand_model.dart';
-import '../models/car_model.dart'; // <--- YANGI IMPORTNI QO'SHDIK
+import '../models/car_model.dart'; 
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
-
+  
   bool _isLoading = false;
   String? _token;
-
-  // Brendlar ro'yxati
   List<CarBrand> _availableBrands = [];
-
-  // --- YANGI: Modellar ro'yxati ---
-  List<CarModel> _availableModels = [];
+  List<CarModel> _availableModels = []; 
 
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _token != null;
   List<CarBrand> get availableBrands => _availableBrands;
+  List<CarModel> get availableModels => _availableModels; 
 
-  // --- YANGI: Getter ---
-  List<CarModel> get availableModels => _availableModels;
+  // --- YANGI: Qurilma ID sini generatsiya qilish ---
+  Future<Map<String, String>> _getDeviceInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. Agar ID oldin yaratilgan bo'lsa, o'shani olamiz. Bo'lmasa yangisini yaratamiz.
+    String? deviceId = prefs.getString('device_unique_id');
+    if (deviceId == null) {
+      // Tasodifiy unikal ID yaratish
+      deviceId = "${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(9999)}";
+      await prefs.setString('device_unique_id', deviceId);
+    }
 
-  // 1. Telefon raqamni tekshirish
+    // 2. Qurilma nomi (Android Emulator yoki shunga o'xshash)
+    String deviceName = "Device-${deviceId.substring(deviceId.length - 4)}";
+
+    return {
+      "deviceId": deviceId,
+      "deviceName": deviceName
+    };
+  }
+  // --------------------------------------------------
+
   Future<Map<String, dynamic>> checkPhone(String phone) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final result = await _apiService.checkPhone(phone);
-
       if (result['exists'] == false && result['carBrands'] != null) {
         _availableBrands = (result['carBrands'] as List)
             .map((item) => CarBrand.fromJson(item))
             .toList();
       }
-
-      _isLoading = false;
-      notifyListeners();
       return result;
     } catch (e) {
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
   }
 
-  // --- YANGI: Mashina modellarini yuklash ---
   Future<void> loadCarModels(String brandId) async {
-    // Kichik yuklanish bo'lsa ham, UI qotib qolmasligi uchun _isLoading ni yoqmaymiz,
-    // yoki faqat dropdown uchun alohida loading qilish mumkin.
     try {
       final response = await http.get(
         Uri.parse('${AppConfig.apiUrl}/auth/car-models/$brandId'),
       );
-
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         _availableModels = data.map((e) => CarModel.fromJson(e)).toList();
@@ -69,50 +77,80 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // 3. Login
+  // LOGIN (YANGILANDI)
   Future<void> login(String phone, String password) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Bu yerda deviceId logikasini oldingi suhbatda qo'shgan bo'lsangiz, o'shani qoldiring.
-      // Hozir oddiy login varianti:
-      final result = await _apiService.login(phone, password);
-      _token = result['token'];
+      // 1. Qurilma ma'lumotlarini olamiz
+      final deviceInfo = await _getDeviceInfo();
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('userId', result['user']['id']);
+      // 2. Serverga ID bilan birga jo'natamiz
+      final response = await http.post(
+        Uri.parse('${AppConfig.apiUrl}/auth/login'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "phoneNumber": phone,
+          "password": password,
+          "deviceId": deviceInfo['deviceId'],   // <--- MUHIM
+          "deviceName": deviceInfo['deviceName'] // <--- MUHIM
+        }),
+      );
 
-      _isLoading = false;
-      notifyListeners();
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        _token = result['token'];
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('userId', result['user']['id']);
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Xatolik');
+      }
     } catch (e) {
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
   }
 
-  // 4. Registratsiya
+  // REGISTRATSIYA (YANGILANDI)
   Future<void> register(Map<String, dynamic> data) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Device ID logikasi kerak bo'lsa, shu yerga qo'shiladi
-      final result = await _apiService.register(data);
-      _token = result['token'];
+      // 1. Qurilma ma'lumotlarini olamiz
+      final deviceInfo = await _getDeviceInfo();
+      
+      // 2. Ma'lumotlarga qo'shamiz
+      data['deviceId'] = deviceInfo['deviceId'];
+      data['deviceName'] = deviceInfo['deviceName'];
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('userId', result['user']['id']);
+      final response = await http.post(
+        Uri.parse('${AppConfig.apiUrl}/auth/register'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(data),
+      );
 
-      _isLoading = false;
-      notifyListeners();
+      if (response.statusCode == 201) {
+        final result = jsonDecode(response.body);
+        _token = result['token'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('userId', result['user']['id']);
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Xatolik');
+      }
     } catch (e) {
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
   }
 }
